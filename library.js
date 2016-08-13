@@ -30,8 +30,8 @@
 	var authenticationController = module.parent.require('./controllers/authentication');
 
 	var constants = Object.freeze({
-			type: '',	// Either 'oauth' or 'oauth2'
-			name: '',	// Something unique to your OAuth provider in lowercase, like "github", or "nodebb"
+			type: 'oauth2',	// Either 'oauth' or 'oauth2'
+			name: 'testings',	// Something unique to your OAuth provider in lowercase, like "github", or "nodebb"
 			oauth: {
 				requestTokenURL: '',
 				accessTokenURL: '',
@@ -40,16 +40,15 @@
 				consumerSecret: ''
 			},
 			oauth2: {
-				authorizationURL: '',
-				tokenURL: '',
-				clientID: '',
-				clientSecret: ''
+				authorizationURL: 'https://localhost:3000/dialog/authorize',
+				tokenURL: 'https://localhost:3000/oauth/token',
+				clientID: 'wealth1',
+				clientSecret: 'wealth2'
 			},
-			userRoute: ''	// This is the address to your app's "user profile" API endpoint (expects JSON)
+			userRoute: 'https://localhost:3000/api/userinfo'	// This is the address to your app's "user profile" API endpoint (expects JSON)
 		}),
 		configOk = false,
 		OAuth = {}, passportOAuth, opts;
-
 	if (!constants.name) {
 		winston.error('[sso-oauth] Please specify a name for your OAuth provider (library.js:32)');
 	} else if (!constants.type || (constants.type !== 'oauth' && constants.type !== 'oauth2')) {
@@ -90,7 +89,6 @@
 				// OAuth 2 options
 				opts = constants.oauth2;
 				opts.callbackURL = nconf.get('url') + '/auth/' + constants.name + '/callback';
-
 				passportOAuth.Strategy.prototype.userProfile = function(accessToken, done) {
 					this._oauth2.get(constants.userRoute, accessToken, function(err, body, res) {
 						if (err) { return done(new InternalOAuthError('failed to fetch user profile', err)); }
@@ -151,16 +149,16 @@
 		// console.log(data);
 
 		var profile = {};
-		profile.id = data.id;
+		profile.id = data.user_id;
 		profile.displayName = data.name;
 		profile.emails = [{ value: data.email }];
 
 		// Do you want to automatically make somebody an admin? This line might help you do that...
 		// profile.isAdmin = data.isAdmin ? true : false;
-
+		   profile.isAdmin = false;
 		// Delete or comment out the next TWO (2) lines when you are ready to proceed
-		process.stdout.write('===\nAt this point, you\'ll need to customise the above section to id, displayName, and emails into the "profile" object.\n===');
-		return callback(new Error('Congrats! So far so good -- please see server log for details'));
+		// process.stdout.write('===\nAt this point, you\'ll need to customise the above section to id, displayName, and emails into the "profile" object.\n===');
+		// return callback(new Error('Congrats! So far so good -- please see server log for details'));
 
 		callback(null, profile);
 	}
